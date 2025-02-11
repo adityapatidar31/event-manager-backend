@@ -65,9 +65,5 @@ exports.login = async (req, res) => {
   }
   user.password = undefined;
 
-  res.status(200).json({
-    status: "success",
-    data: user,
-  });
   createSendToken(user, 200, res);
 };
