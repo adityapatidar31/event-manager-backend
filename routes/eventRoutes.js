@@ -9,12 +9,10 @@ router
   .get(eventController.getAllEvent)
   .post(eventController.createEvent);
 
-router
-  .route("/:id")
-  .get(eventController.getSingleEvent)
-  .post(eventController.updateEvent)
-  .delete(eventController.deleteEvent);
-
-router.route("/login").post(authController.login);
+// router
+//   .route("/:id")
+//   .get(eventController.getSingleEvent)
+//   .post(eventController.updateEvent)
+//   .delete(eventController.deleteEvent);
 
 module.exports = router;
