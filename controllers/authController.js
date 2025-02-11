@@ -19,9 +19,10 @@ const createSendToken = (user, statusCode, res) => {
     sameSite: "none",
   };
 
+  if (process.env.NODE_ENV === "production") cookieOptions.secure = true;
+
   res.cookie("eventjwtcookie", token, cookieOptions);
 
-  if (process.env.NODE_ENV === "production") cookieOptions.secure = true;
   user.password = undefined;
   res.status(statusCode).json({
     status: "success",
@@ -111,39 +112,48 @@ exports.login = async (req, res) => {
 
 exports.protect = async (req, res, next) => {
   // 1. Getting token and check of it's there
-  let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    token = req.headers.authorization.split(" ")[1];
-  } else if (req.cookies?.eventjwtcookie) {
-    token = req.cookies.eventjwtcookie;
-  }
-  if (!token) {
-    res.status(401).json({
-      status: "fail",
-      message: "You are not logged in! Please log in to get access.",
+  try {
+    let token;
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
+    } else if (req.cookies?.eventjwtcookie) {
+      token = req.cookies.eventjwtcookie;
+    }
+    if (!token) {
+      res.status(401).json({
+        status: "fail",
+        message: "You are not logged in! Please log in to get access.",
+      });
+      return;
+    }
+
+    // 2. Verification token
+    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+    // 3. Check if user still exists
+    const currentUser = await User.findById(decoded.id);
+    if (!currentUser) {
+      res.status(401).json({
+        status: "fail",
+        message: "The user belonging to this token does no longer exist.",
+      });
+      return;
+    }
+
+    // GRANT ACCESS TO PROTECTED ROUTE
+    req.user = currentUser;
+    next();
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      status: "failed",
+      message: "Internal Sever Error Try again Later.",
     });
     return;
   }
-
-  // 2. Verification token
-  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-
-  // 3. Check if user still exists
-  const currentUser = await User.findById(decoded.id);
-  if (!currentUser) {
-    res.status(401).json({
-      status: "fail",
-      message: "The user belonging to this token does no longer exist.",
-    });
-    return;
-  }
-
-  // GRANT ACCESS TO PROTECTED ROUTE
-  req.user = currentUser;
-  next();
 };
 
 exports.restrictTo =
