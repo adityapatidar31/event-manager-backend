@@ -12,8 +12,8 @@ router
 router
   .route("/:id")
   .get(eventController.getSingleEvent)
-  .patch(eventController.updateEvent);
-//   .delete(eventController.deleteEvent);
+  .patch(eventController.updateEvent)
+  .delete(eventController.deleteEvent);
 
 router.post("/:id/attendees", eventController.addAttendees);
 

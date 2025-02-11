@@ -98,3 +98,20 @@ exports.updateEvent = async (req, res) => {
     });
   }
 };
+
+exports.deleteEvent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Event.findByIdAndDelete(id);
+
+    res.status(204).json({
+      status: "success",
+      message: "Event deleted successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      error: error.message,
+    });
+  }
+};
