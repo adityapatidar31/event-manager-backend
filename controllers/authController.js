@@ -32,6 +32,39 @@ const createSendToken = (user, statusCode, res) => {
   });
 };
 
+exports.isLoggedIn = async (req, res) => {
+  try {
+    if (!req.cookies.eventjwtcookie) {
+      console.log("hey");
+      return res.status(200).json({
+        status: "success",
+        user: null,
+      });
+    }
+
+    const token = req.cookies.eventjwtcookie;
+    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+    const currentUser = await User.findById(decoded.id);
+    if (!currentUser) {
+      return res.status(200).json({
+        status: "success",
+        user: null,
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      data: { user: currentUser },
+    });
+  } catch (error) {
+    return res.status(200).json({
+      status: "success",
+      user: null,
+    });
+  }
+};
+
 exports.signUp = async (req, res) => {
   try {
     const { name, email, password, passwordConfirm, photo } = req.body;
