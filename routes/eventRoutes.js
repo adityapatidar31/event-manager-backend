@@ -15,4 +15,6 @@ router
 //   .post(eventController.updateEvent)
 //   .delete(eventController.deleteEvent);
 
+router.post("/:id/attendees", eventController.addAttendees);
+
 module.exports = router;

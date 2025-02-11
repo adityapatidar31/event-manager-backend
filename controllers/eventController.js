@@ -34,3 +34,24 @@ exports.createEvent = async (req, res) => {
     });
   }
 };
+
+exports.addAttendees = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const { id } = req.params;
+
+    const event = await Event.findByIdAndUpdate(
+      id,
+      { $addToSet: { attendees: userId } },
+      { new: true }
+    );
+
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    res.status(200).json({ message: "Attendee added successfully", event });
+  } catch (error) {
+    res.status(500).json({ message: "Error adding attendee", error });
+  }
+};
