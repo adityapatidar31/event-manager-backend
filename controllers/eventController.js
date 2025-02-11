@@ -1,8 +1,62 @@
 const Event = require("../models/eventModel");
 
+const Model = require("../models/eventModel");
+
 exports.getAllEvent = async (req, res) => {
   try {
-    const events = await Event.find();
+    let query = Model.find();
+
+    //  Search by name or description (No changes needed)
+    if (req.query.search) {
+      const searchValue = req.query.search;
+      query = query.find({ $text: { $search: searchValue } });
+    }
+
+    // 🔹 Date Filters
+    if (req.query.date) {
+      const now = new Date();
+      const startOfToday = new Date(now.setHours(0, 0, 0, 0));
+      const endOfToday = new Date(now.setHours(23, 59, 59, 999));
+
+      if (req.query.date === "today") {
+        query = query.find({ date: { $gte: startOfToday, $lte: endOfToday } });
+      } else if (req.query.date === "nextWeek") {
+        const nextWeek = new Date();
+        nextWeek.setDate(now.getDate() + 7);
+        query = query.find({ date: { $gte: startOfToday, $lte: nextWeek } });
+      } else if (req.query.date === "nextMonth") {
+        const nextMonth = new Date();
+        nextMonth.setMonth(now.getMonth() + 1);
+        query = query.find({ date: { $gte: startOfToday, $lte: nextMonth } });
+      } else if (req.query.date === "nextThreeMonths") {
+        const nextThreeMonths = new Date();
+        nextThreeMonths.setMonth(now.getMonth() + 3);
+        query = query.find({
+          date: { $gte: startOfToday, $lte: nextThreeMonths },
+        });
+      } else if (req.query.date === "thisYear") {
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
+        const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+        query = query.find({ date: { $gte: startOfYear, $lte: endOfYear } });
+      } else if (req.query.date === "nextThreeYears") {
+        const nextThreeYears = new Date();
+        nextThreeYears.setFullYear(now.getFullYear() + 3);
+        query = query.find({
+          date: { $gte: startOfToday, $lte: nextThreeYears },
+        });
+      }
+    }
+
+    //  Sorting by Date (asc or desc)
+    if (req.query.sort === "+date") {
+      query = query.sort({ date: 1 }); // Ascending
+    } else if (req.query.sort === "-date") {
+      query = query.sort({ date: -1 }); // Descending
+    }
+
+    // Fetch filtered and sorted events
+    const events = await query;
+
     res.status(200).json({
       status: "success",
       length: events.length,
@@ -10,7 +64,7 @@ exports.getAllEvent = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(400).json({
+    res.status(500).json({
       status: "failed",
       error: error.message,
     });
