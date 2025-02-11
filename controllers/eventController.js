@@ -191,3 +191,21 @@ exports.deleteEvent = async (req, res) => {
     });
   }
 };
+
+exports.getMyEvents = async (req, res) => {
+  try {
+    const id = req.user.id;
+
+    const events = await Event.find({ createdBy: id });
+    res.status(200).json({
+      status: "success",
+      data: events,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      status: "fail",
+      error: "Internal server error",
+    });
+  }
+};
