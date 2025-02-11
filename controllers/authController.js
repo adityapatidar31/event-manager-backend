@@ -112,3 +112,15 @@ exports.protect = async (req, res, next) => {
   req.user = currentUser;
   next();
 };
+
+exports.restrictTo =
+  (...roles) =>
+  (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        status: "fail",
+        message: "You are not authorized to do this action",
+      });
+    }
+    next();
+  };
