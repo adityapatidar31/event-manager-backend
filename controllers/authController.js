@@ -67,3 +67,41 @@ exports.login = async (req, res) => {
 
   createSendToken(user, 200, res);
 };
+
+exports.protect = async (req, res, next) => {
+  // 1. Getting token and check of it's there
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  } else if (req.cookies.eventjwtcookie) {
+    token = req.cookies.eventjwtcookie;
+  }
+
+  if (!token) {
+    res.status(401).json({
+      status: "fail",
+      message: "You are not logged in! Please log in to get access.",
+    });
+    return;
+  }
+
+  // 2. Verification token
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+  // 3. Check if user still exists
+  const currentUser = await User.findById(decoded.id);
+  if (!currentUser) {
+    res.status(401).json({
+      status: "fail",
+      message: "The user belonging to this token does no longer exist.",
+    });
+    return;
+  }
+
+  // GRANT ACCESS TO PROTECTED ROUTE
+  req.user = currentUser;
+  next();
+};
