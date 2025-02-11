@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
+const { promisify } = require("util");
 
 function signToken(id) {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -32,9 +33,16 @@ const createSendToken = (user, statusCode, res) => {
 };
 
 exports.signUp = async (req, res) => {
-  const { name, email, password, passwordConfirm, photo } = req.body;
-  const userData = { name, email, password, passwordConfirm };
   try {
+    const { name, email, password, passwordConfirm, photo } = req.body;
+
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
+
+    const userData = { name, email, password, passwordConfirm };
     const newUser = await User.create(userData);
     createSendToken(newUser, 201, res);
   } catch (e) {
@@ -76,10 +84,9 @@ exports.protect = async (req, res, next) => {
     req.headers.authorization.startsWith("Bearer")
   ) {
     token = req.headers.authorization.split(" ")[1];
-  } else if (req.cookies.eventjwtcookie) {
+  } else if (req.cookies?.eventjwtcookie) {
     token = req.cookies.eventjwtcookie;
   }
-
   if (!token) {
     res.status(401).json({
       status: "fail",

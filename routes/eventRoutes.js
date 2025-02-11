@@ -7,14 +7,18 @@ const router = express.Router();
 router
   .route("/")
   .get(eventController.getAllEvent)
-  .post(eventController.createEvent);
+  .post(authController.protect, eventController.createEvent);
 
 router
   .route("/:id")
   .get(eventController.getSingleEvent)
-  .patch(eventController.updateEvent)
-  .delete(eventController.deleteEvent);
+  .patch(authController.protect, eventController.updateEvent)
+  .delete(authController.protect, eventController.deleteEvent);
 
-router.post("/:id/attendees", eventController.addAttendees);
+router.post(
+  "/:id/attendees",
+  authController.protect,
+  eventController.addAttendees
+);
 
 module.exports = router;

@@ -18,10 +18,10 @@ exports.getAllEvent = async (req, res) => {
 };
 
 exports.createEvent = async (req, res) => {
-  console.log(req.body);
   try {
-    const newEvent = await Event.create(req.body);
-
+    const userId = req.user?._id;
+    const eventData = { ...req.body, createdBy: userId };
+    const newEvent = await Event.create(eventData);
     res.status(201).json({
       status: "success",
       data: newEvent,
@@ -60,7 +60,7 @@ exports.getSingleEvent = async (req, res) => {
 
 exports.addAttendees = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const { _id: userId } = req.user;
     const { id } = req.params;
 
     const event = await Event.findByIdAndUpdate(
@@ -82,13 +82,25 @@ exports.addAttendees = async (req, res) => {
 exports.updateEvent = async (req, res) => {
   try {
     const { id } = req.params;
-    const event = await Event.findByIdAndUpdate(id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+
+    const event = await Event.findById(id);
+
+    if (!event) return res.status(404).json({ message: "Event not found" });
+
+    if (event.createdBy.toString() !== req.user.id) {
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to modify this event" });
+    }
+
+    const updatedEvent = await Event.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
     res.status(200).json({
       status: "success",
-      data: event,
+      data: updatedEvent,
     });
   } catch (error) {
     console.log(error);
@@ -102,6 +114,16 @@ exports.updateEvent = async (req, res) => {
 exports.deleteEvent = async (req, res) => {
   try {
     const { id } = req.params;
+
+    const event = await Event.findById(id);
+    if (!event) return res.status(404).json({ message: "Event not found" });
+
+    if (event.createdBy.toString() !== req.user.id) {
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to delete this event" });
+    }
+
     await Event.findByIdAndDelete(id);
 
     res.status(204).json({
