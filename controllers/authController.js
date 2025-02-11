@@ -13,3 +13,30 @@ exports.signUp = async (req, res) => {
     return;
   }
 };
+
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    res.status(400).json({
+      status: "fail",
+      error: "Please Provide email and password",
+    });
+    return;
+  }
+
+  const user = await User.findOne({ email }).select("+password");
+  if (!user || !(await user.correctPassword(password, user.password))) {
+    res.status(401).json({
+      status: "fail",
+      error: "Invalid Credentials",
+    });
+    return;
+  }
+  user.password = undefined;
+
+  res.status(200).json({
+    status: "success",
+    data: user,
+  });
+};
