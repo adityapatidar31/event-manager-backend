@@ -75,6 +75,26 @@ exports.addAttendees = async (req, res) => {
 
     res.status(200).json({ message: "Attendee added successfully", event });
   } catch (error) {
-    res.status(500).json({ message: "Error adding attendee", error });
+    res.status(500).json({ status: "Fail", error: error.message });
+  }
+};
+
+exports.updateEvent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const event = await Event.findByIdAndUpdate(id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    res.status(200).json({
+      status: "success",
+      data: event,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      status: "Fail",
+      error: error.message,
+    });
   }
 };

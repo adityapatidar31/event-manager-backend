@@ -12,7 +12,7 @@ router
 router
   .route("/:id")
   .get(eventController.getSingleEvent)
-  .post(eventController.updateEvent);
+  .patch(eventController.updateEvent);
 //   .delete(eventController.deleteEvent);
 
 router.post("/:id/attendees", eventController.addAttendees);
