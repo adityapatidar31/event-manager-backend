@@ -9,10 +9,10 @@ router
   .get(eventController.getAllEvent)
   .post(eventController.createEvent);
 
-// router
-//   .route("/:id")
-//   .get(eventController.getSingleEvent)
-//   .post(eventController.updateEvent)
+router
+  .route("/:id")
+  .get(eventController.getSingleEvent)
+  .post(eventController.updateEvent);
 //   .delete(eventController.deleteEvent);
 
 router.post("/:id/attendees", eventController.addAttendees);

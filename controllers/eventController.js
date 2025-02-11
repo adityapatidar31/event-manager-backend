@@ -35,6 +35,29 @@ exports.createEvent = async (req, res) => {
   }
 };
 
+exports.getSingleEvent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      res.status(400).json({
+        status: "failed",
+        message: "event id is required",
+      });
+    }
+    const event = await Event.find().populate("attendees");
+    res.status(200).json({
+      status: "success",
+      data: event,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      status: "fail",
+      error: "Failed to fetch tour",
+    });
+  }
+};
+
 exports.addAttendees = async (req, res) => {
   try {
     const { userId } = req.body;
