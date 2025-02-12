@@ -29,7 +29,7 @@ const eventSchema = new mongoose.Schema({
     },
   },
   location: { type: String, required: true },
-  image: { type: String }, // Cloudinary URL
+  image: { type: String, default: "defaultEventImage.jpg" }, // Cloudinary URL
   attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Registered users
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
