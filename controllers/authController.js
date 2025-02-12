@@ -76,7 +76,7 @@ exports.signUp = async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    const userData = { name, email, password, passwordConfirm };
+    const userData = { name, email, password, passwordConfirm, photo };
     const newUser = await User.create(userData);
     createSendToken(newUser, 201, res);
   } catch (e) {
